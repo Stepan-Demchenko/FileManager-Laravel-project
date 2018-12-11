@@ -19,5 +19,6 @@ Route::get('/tree', 'FileManagerController@tree');
 Route::post('/mkdir', 'FileManagerController@createDirectory');
 Route::post('/delete', 'FileManagerController@delete');
 Route::post('/rename', 'FileManagerController@rename');
-Route::get('/preview','FileManagerController@preview');
+Route::get('/preview', 'FileManagerController@preview');
 Route::get('/download', 'FileManagerController@download');
+Route::post('/upload', 'FileManagerController@upload');

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Traits\ContentTrait;
 use App\Traits\HelperTrait;
 use Intervention\Image\Facades\Image;
+use Symfony\Component\Console\Input\Input;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class FileManagerController extends Controller
 {
@@ -142,7 +144,7 @@ class FileManagerController extends Controller
     public function preview(Request $request)
     {
         // disk or path not found
-        if (! $this->checkPath(self::DISK, $request->input('path'))) {
+        if (!$this->checkPath(self::DISK, $request->input('path'))) {
             abort(404, trans('file-manager::response.fileNotFound'));
         }
         // get image
@@ -153,27 +155,27 @@ class FileManagerController extends Controller
     public function download(Request $request)
     {
         // Проверка на существование диска или файла
-        if (! $this->checkPath(self::DISK, $request->input('path'))) {
+        if (!$this->checkPath(self::DISK, $request->input('path'))) {
             abort(404, trans('file-manager::response.fileNotFound'));
         }
         return Storage::disk(self::DISK)->download($request->input('path'));
     }
 
-    public function upload($disk, $path, $files, $overwrite)
+    public function upload($path, $files, $overwrite)
     {
-        if (! $this->checkPath($disk, $path)) {
+        if (!$this->checkPath(self::DISK, $path)) {
             return $this->notFoundMessage();
         }
 
         foreach ($files as $file) {
             // skip or overwrite files
-            if (! $overwrite) {
+            if (!$overwrite) {
                 // if file exist, take next file
-                if (Storage::disk($disk)->exists($path . '/' . $file->getClientOriginalName())) continue;
+                if (Storage::disk(self::DISK)->exists($path . '/' . Input::file($file)->getClientOriginalName())) continue;
             }
 
             // overwrite or save file
-            Storage::disk($disk)->putFileAs(
+            Storage::disk(self::DISK)->putFileAs(
                 $path,
                 $file,
                 $file->getClientOriginalName()
@@ -182,8 +184,8 @@ class FileManagerController extends Controller
 
         return [
             'result' => [
-                'status'    => 'success',
-                'message'   => trans('file-manager::response.uploaded')
+                'status' => 'success',
+                'message' => trans('file-manager::response.uploaded')
             ]
         ];
     }
