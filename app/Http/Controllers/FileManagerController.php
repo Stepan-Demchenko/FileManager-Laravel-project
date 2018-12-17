@@ -15,23 +15,29 @@ class FileManagerController extends Controller
     const DISK = 'local';
     use ContentTrait, HelperTrait;
 
-    public function content()
+    public function content(Request $request)
     {
         if (!$this->checkPath(self::DISK, '/public')) {
             return $this->notFoundMessage();
         }
 //        $contents = Storage::disk(self::DISK)->listContents('/public');
-        $contents = $this->getContent(self::DISK, '/public');
-        return response()->json([
-            'result' => [
-                'status' => 'success',
-                'message' => null
-            ],
-            'directories' => $contents['directories'],
-            'files' => $contents['files']
-        ]);
-
+        if (!$request->input('url')) {
+            $contents = $this->getContent(self::DISK, '/public');
+            return response()->json(
+//            'directories' => $contents['directories'],
+//           'files' => $contents['files']
+                $contents
+            );
+        } else {
+            $contents = $this->getContent(self::DISK, $request->input('url'));
+            return response()->json(
+//            'directories' => $contents['directories'],
+//           'files' => $contents['files']
+                $contents
+            );
+        }
     }
+
 
     public function tree()
     {

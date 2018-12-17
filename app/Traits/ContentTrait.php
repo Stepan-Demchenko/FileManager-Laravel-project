@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Traits;
 /**
  * Created by PhpStorm.
@@ -6,6 +7,7 @@ namespace App\Traits;
  * Date: 27-Nov-18
  * Time: 4:48 PM
  */
+
 use Illuminate\Support\Collection;
 use Storage;
 
@@ -19,17 +21,15 @@ trait ContentTrait
      * @param $path
      * @return array
      */
-    public function getContent($disk, $path = null)
+    public function getContent($disk, $url = null)
     {
-        $contents = Storage::disk($disk)->listContents($path);
-
+        $contents = Storage::disk($disk)->listContents($url);
         // get a list of directories
-        $directories = $this->filterDir($contents);
+//        $directories = $this->filterDir($contents);
 
         // get a list of files
-        $files = $this->filterFile($contents);
-
-        return compact('directories', 'files');
+//        $files = $this->filterFile($contents);
+        return compact('contents', 'url');
     }
 
     /**
