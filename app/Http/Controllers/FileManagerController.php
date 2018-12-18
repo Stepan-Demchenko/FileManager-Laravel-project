@@ -20,19 +20,14 @@ class FileManagerController extends Controller
         if (!$this->checkPath(self::DISK, '/public')) {
             return $this->notFoundMessage();
         }
-//        $contents = Storage::disk(self::DISK)->listContents('/public');
         if (!$request->input('url')) {
             $contents = $this->getContent(self::DISK, '/public');
             return response()->json(
-//            'directories' => $contents['directories'],
-//           'files' => $contents['files']
                 $contents
             );
         } else {
             $contents = $this->getContent(self::DISK, $request->input('url'));
             return response()->json(
-//            'directories' => $contents['directories'],
-//           'files' => $contents['files']
                 $contents
             );
         }
@@ -56,8 +51,7 @@ class FileManagerController extends Controller
     public function createDirectory(Request $request)
     {
         // path for new directory
-        $directoryName = $this->newDirectoryPath('/public', $request->input('name'));
-
+        $directoryName = $this->newDirectoryPath($request->input('url'), $request->input('name'));
         // check - exist directory or no
         if (Storage::disk(self::DISK)->exists($directoryName)) {
             return \response()->json([
@@ -81,10 +75,7 @@ class FileManagerController extends Controller
                 'result' => [
                     'status' => 'success',
                     'message' => trans('file-manager::response.dirCreated')
-                ],
-                'directory' => $directoryProperties,
-                'tree' => [$tree]
-            ]);
+                ]]);
         }
     }
 

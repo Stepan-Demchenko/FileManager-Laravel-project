@@ -29,7 +29,8 @@ trait ContentTrait
 
         // get a list of files
 //        $files = $this->filterFile($contents);
-        return compact('contents', 'url');
+        $prevUrl = dirname($url);
+        return compact('contents', 'url','prevUrl');
     }
 
     /**

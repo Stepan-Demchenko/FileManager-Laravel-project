@@ -14,7 +14,7 @@
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/ls', 'FileManagerController@content');
+//Route::get('/ls', 'FileManagerController@content');
 Route::post('/ls', 'FileManagerController@content');
 Route::get('/tree', 'FileManagerController@tree');
 Route::post('/mkdir', 'FileManagerController@createDirectory');
