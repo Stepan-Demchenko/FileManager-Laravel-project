@@ -36,9 +36,8 @@ trait HelperTrait
     {
         return [
             'result' => [
-                'status' => 'danger',
-                'message' => trans('file-manager::response.notFound')
-            ]
+                'status' => 'danger'
+            ], abort(400)
         ];
     }
 

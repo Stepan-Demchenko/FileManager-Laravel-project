@@ -48,6 +48,14 @@ class FileManagerController extends Controller
         ]);
     }
 
+//    public function changeDirectory(Request $request)
+//    {
+//        for ($i=0; i<$request->all()->length; )
+//        if (!$this->checkPath(self::DISK, $oldName)) {
+//            return $this->notFoundMessage();
+//        }
+//    }
+
     public function createDirectory(Request $request)
     {
         // path for new directory
@@ -81,26 +89,21 @@ class FileManagerController extends Controller
 
     public function delete(Request $request)
     {
-        // check all files and folders - exists or no
         $allItemsExists = true;
-
-        foreach ($request->input('items') as $item) {
+        foreach ($request->input('contents') as $item) {
             if (!Storage::disk(self::DISK)->exists($item['path'])) {
                 $allItemsExists = false;
             }
         }
-
         if (!$allItemsExists) {
             return response()->json([
                 'result' => [
-                    'status' => 'danger',
-                    'message' => 'NotFound'
-                ]
+                    'status' => 'Файли/файл не найдені'
+                ], abort(404)
             ]);
         }
-
         // delete files and folders
-        foreach ($request->input('items') as $item) {
+        foreach ($request->input('contents') as $item) {
             if ($item['type'] === 'dir') {
                 // delete directory
                 Storage::disk(self::DISK)->deleteDirectory($item['path']);
@@ -109,7 +112,6 @@ class FileManagerController extends Controller
                 Storage::disk(self::DISK)->delete($item['path']);
             }
         }
-
         return response()->json([
             'result' => [
                 'status' => 'success',
@@ -121,7 +123,7 @@ class FileManagerController extends Controller
     public function rename(Request $request)
     {
         //Проверка на существовнаие файла со старым именем
-        $oldName = $request->input('oldName');
+        $oldName = $request->input('path');
         $newName = $request->input('newName');
         if (!$this->checkPath(self::DISK, $oldName)) {
             return $this->notFoundMessage();
@@ -132,7 +134,7 @@ class FileManagerController extends Controller
         return response()->json([
             'result' => [
                 'status' => 'success',
-                'message' => trans('file-manager::response.renamed')
+                'message' => 'Успішно перейменован'
             ]
         ]);
     }
