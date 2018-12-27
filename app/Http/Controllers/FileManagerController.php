@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Chumper\Zipper\Zipper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Traits\ContentTrait;
@@ -48,13 +49,24 @@ class FileManagerController extends Controller
         ]);
     }
 
-//    public function changeDirectory(Request $request)
-//    {
-//        for ($i=0; i<$request->all()->length; )
-//        if (!$this->checkPath(self::DISK, $oldName)) {
-//            return $this->notFoundMessage();
-//        }
-//    }
+    public function changeDirectory(Request $request)
+    {
+        $fromPath = current($request->input('contents.*.path'));
+        $toNewPath = current($request->input('secondContents.*.path'));
+        $elementMove = current($request->input('secondContents.*.basename'));
+        if (Storage::disk(self::DISK)->exists($fromPath) && Storage::disk(self::DISK)->exists($toNewPath)) {
+            Storage::move($toNewPath, $fromPath . '/' . $elementMove);
+            return response()->json([
+                'result' => [
+                    'message' => 'success'
+                ]]);
+        } else {
+            return response()->json([
+                'result' => [
+                    'message' => 'Директорії не існує',
+                ], abort(403)]);
+        }
+    }
 
     public function createDirectory(Request $request)
     {
@@ -64,21 +76,12 @@ class FileManagerController extends Controller
         if (Storage::disk(self::DISK)->exists($directoryName)) {
             return \response()->json([
                 'result' => [
-                    'status' => 'warning',
-                    'message' => trans('file-manager::response.dirExist')
-                ]
+                    'message' => 'Така директорія вже існує',
+                ], abort(403)
             ]);
         } else {
             // create new directory
             Storage::disk(self::DISK)->makeDirectory($directoryName);
-
-            // get directory properties
-            $directoryProperties = $this->directoryProperties(self::DISK, $directoryName);
-
-            // add directory properties for the tree module
-            $tree = $directoryProperties;
-            $tree['props'] = ['hasSubdirectories' => false];
-
             return response()->json([
                 'result' => [
                     'status' => 'success',
@@ -153,29 +156,42 @@ class FileManagerController extends Controller
 
     public function download(Request $request)
     {
-        // Проверка на существование диска или файла
-        if (!$this->checkPath(self::DISK, $request->input('path'))) {
-            abort(404, trans('file-manager::response.fileNotFound'));
+        $path = current($request->input('contents.*.path'));
+        $type = current($request->input('contents.*.type'));
+        // Проверка на существование  файла или файла
+        if (!$this->checkPath(self::DISK, $request->input($path))) {
+            return response()->json([
+                'result' => [
+                    'status' => 'Файли/файли не найдені'
+                ], abort(404)
+            ]);
         }
-        return Storage::disk(self::DISK)->download($request->input('path'));
+        if ($type == 'dir') {
+            $namePathZip = current($request->input('contents.*.basename')) . '.zip';
+            $files = glob(storage_path('app/') . $path);
+            \Zipper::make(storage_path($namePathZip))->add($files)->close();
+            return response()->download(storage_path($namePathZip));
+        } else {
+            return Storage::disk(self::DISK)->download($path);
+        }
     }
 
-    public function upload($path, $files, $overwrite)
+
+    public function upload(Request $request)
     {
-        if (!$this->checkPath(self::DISK, $path)) {
-            return $this->notFoundMessage();
+
+        $path = $request->input('url');
+        $files = $request->allFiles();
+        if (!$this->checkPath(self::DISK, '/' . $path)) {
+            return response()->json([
+                'result' => [
+                    'status' => 'Не знайдено папку'
+                ], abort(404)
+            ]);
         }
-
         foreach ($files as $file) {
-            // skip or overwrite files
-            if (!$overwrite) {
-                // if file exist, take next file
-                if (Storage::disk(self::DISK)->exists($path . '/' . Input::file($file)->getClientOriginalName())) continue;
-            }
-
-            // overwrite or save file
             Storage::disk(self::DISK)->putFileAs(
-                $path,
+                '/' . $path,
                 $file,
                 $file->getClientOriginalName()
             );
@@ -183,10 +199,29 @@ class FileManagerController extends Controller
 
         return [
             'result' => [
-                'status' => 'success',
-                'message' => trans('file-manager::response.uploaded')
+                'message' => 'Завантажено',
             ]
         ];
+    }
+
+    public function copy(Request $request)
+    {
+        $path = '/' . current($request->input('contents.*.path'));
+        $copyTo = '/' . current($request->input('secondContents.*.path'));
+        $name = '/' . current($request->input('contents.*.basename'));
+        if (!$this->checkPath(self::DISK, $path) && !$this->checkPath(self::DISK, $copyTo)) {
+            return response()->json([
+                'result' => [
+                    'status' => 'Не знайдено папку'
+                ], abort(404)
+            ]);
+        }
+        Storage::copy($path, $copyTo . $name);
+        return response()->json([
+            'result' => [
+                'message' => 'Файл скопійовано!'
+            ]
+        ]);
     }
 
 }

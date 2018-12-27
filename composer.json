@@ -9,10 +9,12 @@
         "alexusmai/laravel-file-manager": "^1.0",
         "barryvdh/laravel-cors": "^0.11.2",
         "barryvdh/laravel-ide-helper": "^2.5",
+        "chumper/zipper": "^1.0",
         "doctrine/dbal": "^2.8",
         "fideloper/proxy": "^4.0",
         "laravel/framework": "5.7.*",
-        "laravel/tinker": "^1.0"
+        "laravel/tinker": "^1.0",
+        "zircote/swagger-php": "^3.0"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
